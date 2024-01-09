@@ -112,16 +112,7 @@ def get_job_data(drivers, job, location, verbose=True, limit: int=None, bypass=T
     if verbose:
         print("**Time of pre-loop Bypass :** ", time.time()-deb)
         
-    #if wait_for(lookup_driver, *loca, 1):
-    #    button = lookup_driver.find_element(*loca)
-    #    button.click()
-    
-    #Info to get / Columns:
-    
-    
-    # Main information (eventually to look for duplicates)
-    
-    
+
     # Job infos
     jobs_ids = [] # dups checking
     
@@ -156,8 +147,10 @@ def get_job_data(drivers, job, location, verbose=True, limit: int=None, bypass=T
         print(job_href)
         job_id = job_href[-1]
         wait_for(main_driver, By.CLASS_NAME, 'job-view-layout.jobs-details', 2)
+        ###### Get the company name ######
         company = job_element.find_element(By.CLASS_NAME,"job-card-container__primary-description").text
-            
+        
+        # Check for dups in job (in case of process reload or dups in other linkedin page)
         if job_id in jobs_ids:
             perform_threads = False
         else:
@@ -165,8 +158,7 @@ def get_job_data(drivers, job, location, verbose=True, limit: int=None, bypass=T
             jobs_ids.append((job_id, job_title, company))
         
         if perform_threads:
-    ###### Get the company name ######
-    
+
         ##### Job Thread #####
             hover = ActionChains(main_driver).move_to_element(job_element).click()
             hover.perform()
@@ -178,7 +170,7 @@ def get_job_data(drivers, job, location, verbose=True, limit: int=None, bypass=T
                                                 args=[layout, company])
             thread_job.start()  
     
-    
+            # Check for dups in company name (to avoid getting early captcha and get faster process)
             if company not in companies_name:
                 perform_company_threads = True
                 companies_name.append(company)
@@ -186,13 +178,13 @@ def get_job_data(drivers, job, location, verbose=True, limit: int=None, bypass=T
                 perform_company_threads = False
         
             if perform_company_threads:  
-    ##### Glassdoor thread #####
+            ##### Glassdoor thread #####
                 print("company:",company)
                 thread_company = ThreadWithReturnValue(target=get_company_info, 
                                                     args=(glassdoor_drivers, company, verbose, bypass))
                 thread_company.start()
                 
-    ##### Eco score Thread #####
+            ##### Eco score Thread #####
                 t_eco = ThreadWithReturnValue(target=get_eco_score, 
                                                     args=(eco_driver, company))
                 t_eco.start()        
@@ -223,7 +215,7 @@ def get_job_data(drivers, job, location, verbose=True, limit: int=None, bypass=T
                     add_data = False  
                 else:
                     add_data = True
-                    ### perform company threads or just quit doing
+                    ### perform company threads or just quit doing maybe lose 1 data
             if add_data:
                 company_infos,company_reviews_infos = company_agg_infos
                 # List of elements, List of tuples with tag + score
@@ -241,16 +233,7 @@ def get_job_data(drivers, job, location, verbose=True, limit: int=None, bypass=T
     # End of loop
     ###########################
     
-    # List of company_infos
-    # List of job_infos
-    
-    # For each job, add the data of the company
-    
-    # For each company, 
-        
-    # All reviews tags
-    
-    def normalize_data(agg_list): #List is [(1,2),(1,2),...]
+    def normalize_data(agg_list): #List is [(name,score),(name,score),...] and get list of unique names (columns) and associated scores (rows)
         names_ = {tag_[0] for review in agg_list for tag_ in review}    
         list_ = []
         for agg_ in agg_list:
