@@ -1,9 +1,8 @@
 from threading import Thread
-from selenium.webdriver import Chrome
-#from selenium.common.exceptions import Unre
-from selenium.webdriver.common.by import By
+
 import numpy as np
-import time
+from selenium.webdriver import Chrome
+
 
 class ThreadWithReturnValue(Thread):
     
@@ -102,7 +101,10 @@ def init_drivers(number=1, func=Chrome, args=[], drivers_: list = [], nb_pages=1
 import os
 import shutil
 import tempfile
+
 import undetected_chromedriver as webdriver
+
+
 def force_patcher_to_use(directory):
     # copy the chromedriver in directory
     exe = webdriver.Patcher.exe_name.replace("%s",".exe")

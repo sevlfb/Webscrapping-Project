@@ -1,18 +1,14 @@
-from selenium.webdriver.common.by import By
 import time
-from bs4 import BeautifulSoup
-import requests
-from utils.selenium import bypass_captcha, wait_for, element_exists
-import urllib
-from selenium import webdriver
-from utils.login import login_google
+
 import pandas as pd
-from utils.threading import ThreadWithReturnValue
-import numpy as np
-import regex as re
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.by import By
+
+from utils.login import login_glassdoor
 from utils.scrapping.eco_score import get_eco_score
 from utils.scrapping.glassdoor import get_company_info
-from selenium.webdriver.common.action_chains import ActionChains
+from utils.selenium import bypass_captcha, wait_for
+from utils.threading import ThreadWithReturnValue, init_drivers
 
 
 def loop_pages(list_drivers, verbose, bypass):
@@ -203,8 +199,6 @@ def get_job_data(drivers, job, location, verbose=True, limit: int=None, bypass=T
                 eco_company_name, eco_score = t_eco.join()
                 if company_agg_infos == "Captcha detected":
                 # If the captcha is detected, we have to do the process again
-                    from utils.threading import init_drivers
-                    from utils.login import login_glassdoor
                     for driver in glassdoor_drivers:
                         driver.quit()
                     del glassdoor_drivers

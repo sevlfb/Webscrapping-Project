@@ -1,21 +1,11 @@
-from selenium.webdriver.common.by import By
 import time
-from bs4 import BeautifulSoup
-import requests
-from utils.selenium import bypass_captcha, wait_for, element_exists
-import urllib
-from selenium import webdriver
-from utils.login import login_google
-import pandas as pd
-from utils.threading import ThreadWithReturnValue
-import numpy as np
-import regex as re
-from utils.scrapping.eco_score import get_eco_score
-from selenium.webdriver import ActionChains
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver import Chrome
-from utils.selenium import bypass_captcha
 
+from selenium.webdriver import Chrome
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+
+from utils.selenium import bypass_captcha, wait_for
+from utils.threading import ThreadWithReturnValue
 
 # Glassdoor
 'placeholder="Lieu"'

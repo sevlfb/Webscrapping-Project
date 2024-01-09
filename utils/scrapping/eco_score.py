@@ -1,9 +1,7 @@
-from selenium import webdriver
-from bs4 import BeautifulSoup
-import requests
+import time
+
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-import time
 
 
 def get_eco_score(driver, company):

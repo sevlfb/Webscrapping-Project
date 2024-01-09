@@ -1,10 +1,9 @@
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.by import By
-import time
 from selenium.webdriver import Chrome
-import streamlit as st
-from utils.selenium import wait_for, bypass_captcha
-from utils.selenium import create_driver 
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+
+from utils.selenium import bypass_captcha, create_driver, wait_for
+
 
 def login_google(driver, email, password):
     #locator = (By.CSS_SELECTOR, '[data-tn-element="login-google-button"]')

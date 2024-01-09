@@ -1,14 +1,11 @@
-from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchElementException
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 import time
+
 from selenium import webdriver
-import undetected_chromedriver as ucw
-from utils.threading import force_patcher_to_use
-import undetected_chromedriver as ucw
-import os
-import tempfile
+from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+
 
 # Permet d'attendre qu'un élément s'affiche sans changer le "implicitly_wait" time
 def wait_for(driver, by, value, max_time=10, verbose=False):
