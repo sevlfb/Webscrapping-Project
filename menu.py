@@ -34,6 +34,7 @@ if reset_drivers:
                     driver.quit()
             del session["drivers"]
             session["logged_in"] = False
+    st.experimental_rerun()
 #### Init drivers but once :
 for arg in ["logged_in","select_filters","scrap"]:
     if arg not in session:
@@ -125,8 +126,11 @@ if session["logged_in"] and "drivers" in session:
                 drivers_list[0].get("https://fr.indeed.com/emplois"+link)
             with st.spinner("OKKKKKK LET'S GOOOOO"):
                 deb = time.time()
-                dfs = loop_pages(session["drivers"], verbose=False, bypass = False)
-                df=pd.concat(dfs)
+                dfs = loop_pages(session["drivers"], verbose=False, bypass=True)
+                try:
+                    df=pd.concat(dfs)
+                except:
+                    st.write("Error")
                 st.write(f"exec in {time.time()-deb} seconds")
             #st.dataframe(df)
  

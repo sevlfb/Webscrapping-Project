@@ -8,10 +8,8 @@ import time
 
 def get_eco_score(driver, company):
     deb = time.time()
-    #print("\n"*5,"COUCOU §§§§§§§§§§§§", "\n"*5)
     # Ouverture du driver
     driver.get("https://wearegreen.io/entreprises")
-    #print("\n"*5,"BITE §§§§§§§§§§§§", "\n"*5)
 
     # Récupère le champ de recherche 
     search_box = driver.find_element(By.ID, "searchBar")

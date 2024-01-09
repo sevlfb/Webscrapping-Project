@@ -27,46 +27,53 @@ from utils.selenium import bypass_captcha
 def scrap_company_info(driver: Chrome, link, verbose, bypass):
     print("scrap company info")
     driver.get(link)
-    wait_for(driver, By.CLASS_NAME, "employer-overview__employer-overview-module__employerDetails", 1)
-    try:
-        company_infos_block = driver.find_element(By.CLASS_NAME, "employer-overview__employer-overview-module__employerDetails")
-        company_infos = list(map(lambda x: x.text, company_infos_block.find_elements(By.TAG_NAME, 'li')))
-        return company_infos
-    except:
-        print("No employer detail")
-        return []
+    if not bypass_captcha(driver,method="cloudflare"):
+        wait_for(driver, By.CLASS_NAME, "employer-overview__employer-overview-module__employerDetails", 1)
+        try:
+            company_infos_block = driver.find_element(By.CLASS_NAME, "employer-overview__employer-overview-module__employerDetails")
+            company_infos = list(map(lambda x: x.text, company_infos_block.find_elements(By.TAG_NAME, 'li')))
+            return company_infos
+        except:
+            print("No employer detail")
+            return []
+    else:
+        return "Captcha detected"
         
 
 def scrap_reviews_info(driver: Chrome, review_url):
     print("scrap reviews_info")
     deb = time.time()
     driver.get(review_url)
-    bypass_captcha(driver,method="cloudflare")
-    # get notes for each tag
-    try:
-        block = driver.find_element(By.CLASS_NAME, 
-                                    'review-overview__review-overview-module__industryAverageContainer')
-        a = list(map(lambda x: x.text, block.find_elements(By.TAG_NAME, 'p')))
-        reviews_notes = [a[i] for i in range(0, len(a), 2)]
-        reviews_tags = [a[i] for i in range(1, len(a), 2)]
-        tags_scores = [(j,i) for i,j in zip(reviews_notes,reviews_tags)]
-    except:
-        tags_scores = [('','')]
-    # add the domain comparison !!!!!!!!!!!!
-    #class="tooltip__tooltip-module__TooltipTrigger TooltipTriggerContent" hover + class="tooltip__tooltip-module__TooltipContent".text
-    
-    # get stars ranking %
-    try:
-        block = driver.find_element(By.CLASS_NAME, 
-                    'review-overview__review-overview-module__distributionContainer')
-        a = list(map(lambda x: x.text, block.find_elements(By.TAG_NAME, 'p')))
-        reviews_notes = [a[i] for i in range(0, len(a), 2)]
-        reviews_tags = [a[i] for i in range(1, len(a), 2)]
-        stars_scores = [(j,i) for i,j in zip(reviews_notes,reviews_tags)]
-    except:
-        stars_scores = [('','')]
-    
-    return tags_scores, stars_scores
+    if not bypass_captcha(driver,method="cloudflare"):
+        # get notes for each tag
+        try:
+            block = driver.find_element(By.CLASS_NAME, 
+                                        'review-overview__review-overview-module__industryAverageContainer')
+            a = list(map(lambda x: x.text, block.find_elements(By.TAG_NAME, 'p')))
+            reviews_notes = [a[i] for i in range(0, len(a), 2)]
+            reviews_tags = [a[i] for i in range(1, len(a), 2)]
+            tags_scores = [(j,i) for i,j in zip(reviews_notes,reviews_tags)]
+        except:
+            tags_scores = [('','')]
+        # add the domain comparison !!!!!!!!!!!!
+        #class="tooltip__tooltip-module__TooltipTrigger TooltipTriggerContent" hover + class="tooltip__tooltip-module__TooltipContent".text
+        
+        # get stars ranking %
+        try:
+            block = driver.find_element(By.CLASS_NAME, 
+                        'review-overview__review-overview-module__distributionContainer')
+            a = list(map(lambda x: x.text, block.find_elements(By.TAG_NAME, 'p')))
+            reviews_notes = [a[i] for i in range(0, len(a), 2)]
+            reviews_tags = [a[i] for i in range(1, len(a), 2)]
+            stars_scores = [(i,j) for i,j in zip(reviews_notes,reviews_tags)]
+        except:
+            stars_scores = [('','')]
+        
+        print("scores")
+        print(tags_scores, stars_scores)
+        return tags_scores, stars_scores
+    else:
+        return "Captcha detected"
 
 
 def get_company_info(drivers, company, verbose=False, bypass=False):
@@ -96,16 +103,16 @@ def get_company_info(drivers, company, verbose=False, bypass=False):
         company_reviews_infos = []
     
     if is_company:
-        company_id = comps[0].find_element(By.TAG_NAME, "img").get_attribute("src").split("/")[4] 
+        company_id = "E"+comps[0].find_element(By.TAG_NAME, "img").get_attribute("src").split("/")[4] 
 
         # Thread
-        company_url = f"https://www.glassdoor.fr/Présentation/Travailler-chez-{company}-EI_IE{company_id}.htm"
-        company_reviews_url = f"https://www.glassdoor.fr/Avis/{company}-Avis-{company_id}.htm"
+        company_url = f"https://www.glassdoor.fr/Présentation/Travailler-chez-{company}-EI_I{company_id}.htm"
+        company_reviews_url = f"https://www.glassdoor.fr/Avis/{company.replace(' ', '-')}-Avis-{company_id}.htm"
         
         ### Thread 1
-        #thread_company = ThreadWithReturnValue(target=scrap_company_info, 
-        #                                    args=(company_driver, company_url, verbose, bypass))
-        #thread_company.start()
+        thread_company = ThreadWithReturnValue(target=scrap_company_info, 
+                                            args=(company_driver, company_url, verbose, bypass))
+        thread_company.start()
 
         ### Thread 2  
         thread_reviews = ThreadWithReturnValue(target=scrap_reviews_info, 
@@ -113,8 +120,11 @@ def get_company_info(drivers, company, verbose=False, bypass=False):
         thread_reviews.start()
         
 
-        #company_infos = thread_company.join()
+        company_infos = thread_company.join()
         company_reviews_infos = thread_reviews.join()
+        
+        if "Captcha detected" in [company_infos, company_reviews_infos]:
+            return "Captcha detected"
         
     
     if verbose:

@@ -49,21 +49,21 @@ def create_driver(undetected=False):
     #options.add_argument("--headless")
     options.add_argument("--window-size=1920,1080")
     #options.add_argument("--window-size=800,800")
-    options.add_argument("--auto-open-devtools-for-tabs")
+    #options.add_argument("--auto-open-devtools-for-tabs")
     #options.add_argument("--disable-gpu")
     options.add_argument('--ignore-certificate-errors')
     options.add_argument('--allow-running-insecure-content')
     #options.add_argument('--profile-directory=' + str(int(time.time())))
     #user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.50 Safari/537.36'
     #options.add_argument(f'user-agent={user_agent}')
-    CHROME_VERSION = "121.0.6167.14"
-    dir = 'C:\\Users\\sever\\AppData\\Roaming\\undetected_chromedriver\\undetected\\chromedriver-win32\\chromedriver.exe'
-    dir = r'C:\\Users\\sever\\AppData\\Roaming\\undetected_chromedriver\\undetected\\chromedriver-win32\\chromedriver.exe'
-    if undetected:
-        print("undetected activated yes !!!!")
-        driver = Driver.Chrome(uc=True, options=options)
-    else:
-        driver = webdriver.Chrome(options=options)
+    #CHROME_VERSION = "121.0.6167.14"
+    #dir = 'C:\\Users\\sever\\AppData\\Roaming\\undetected_chromedriver\\undetected\\chromedriver-win32\\chromedriver.exe'
+    #dir = r'C:\\Users\\sever\\AppData\\Roaming\\undetected_chromedriver\\undetected\\chromedriver-win32\\chromedriver.exe'
+    #if undetected:
+    #    print("undetected activated yes !!!!")
+    #    driver = Driver.Chrome(uc=True, options=options)
+    #else:
+    driver = webdriver.Chrome(options=options)
      
     driver.implicitly_wait(0.1)
     #driver.set_window_position(2000,2000)
