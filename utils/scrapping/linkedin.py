@@ -119,6 +119,7 @@ def get_job_data(drivers, job, location, verbose=True, limit: int=None, bypass=T
     companies_name = [] # dups checking
     companies_infos_list = []
     companies_reviews_list = []
+    companies_add_infos = []
     
     eco_scores = []
 
@@ -211,11 +212,12 @@ def get_job_data(drivers, job, location, verbose=True, limit: int=None, bypass=T
                     add_data = True
                     ### perform company threads or just quit doing maybe lose 1 data
             if add_data:
-                company_infos,company_reviews_infos = company_agg_infos
+                company_infos,company_reviews_infos, additional_infos = company_agg_infos
                 # List of elements, List of tuples with tag + score
                 # ML for tagging elements ?
                 companies_infos_list.append(company_infos)
                 companies_reviews_list.append(company_reviews_infos)
+                companies_add_infos.append(additional_infos)
                 
                 eco_scores.append((eco_company_name, eco_score))
         
@@ -246,17 +248,20 @@ def get_job_data(drivers, job, location, verbose=True, limit: int=None, bypass=T
     companies_reviews_tags_list, company_reviews_names = normalize_data(reviews_tags_list)
     companies_stars_tags_list, company_stars_names = normalize_data(stars_tags_list)
     jobs_tags_tags_list, job_tags_names = normalize_data(jobs_tags_list)
+    companies_additional_tags_list, company_additional_names = normalize_data(companies_add_infos)
 
     df_glassdoor_reviews = pd.DataFrame(companies_reviews_tags_list, columns=list(company_reviews_names))
     df_glassdoor_stars = pd.DataFrame(companies_stars_tags_list, columns=list(company_stars_names))
     df_glassdoor_tags = pd.DataFrame(jobs_tags_tags_list, columns=list(job_tags_names))
+    df_glassdoor_adds = pd.DataFrame(companies_additional_tags_list, columns=list(company_additional_names))
+
     
     df_glassdoor = pd.DataFrame({
         "Company name": companies_name,
         "Company infos": companies_infos_list,
         })
     
-    df_glassdoor=pd.concat([df_glassdoor, df_glassdoor_tags, df_glassdoor_reviews, df_glassdoor_stars], axis=1)
+    df_glassdoor=pd.concat([df_glassdoor, df_glassdoor_adds, df_glassdoor_tags, df_glassdoor_reviews, df_glassdoor_stars], axis=1)
     
     df_ecoscore = pd.DataFrame({
         "EcoCompany name": [score[0] for score in eco_scores],
@@ -275,7 +280,6 @@ def get_job_data(drivers, job, location, verbose=True, limit: int=None, bypass=T
     for i in range(len(jobs_ids)):
         jobs_final_list.append([jobs_ids[i][1],
                                 jobs_ids[i][0],
-                                jobs_ids[i][2],
                                 jobs_tags_list[i],
                                 jobs_locs[i]] + dict_companies[jobs_ids[i][2]],
                                 )
@@ -287,7 +291,6 @@ def get_job_data(drivers, job, location, verbose=True, limit: int=None, bypass=T
     df_jobs =  pd.DataFrame(jobs_final_list, 
                             columns=["Job Title",
                                      "Job ID",
-                                     "Company Name",
                                      "Job Tags",
                                      "Job Loc"] + list(df_company.columns[1:].values)
         )

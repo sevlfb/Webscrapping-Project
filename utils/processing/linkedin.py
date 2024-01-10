@@ -12,7 +12,6 @@ def enter_parameters(driver, job_title, location):
 def setup_linkedin(driver, email, password, undetected=False, google=False): # login indeed from scratch
     # Set up the Chrome driver (you can use other drivers as well)
     if driver is None:
-        print("Creating driver")
         driver = create_driver(undetected=undetected) 
 
     driver = login_linkedin(driver, email, password, google=google)

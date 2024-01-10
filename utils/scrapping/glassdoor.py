@@ -61,7 +61,18 @@ def scrap_reviews_info(driver: Chrome, review_url):
         
         print("scores")
         print(tags_scores, stars_scores)
-        return tags_scores, stars_scores
+        
+        note_globale = driver.find_element(By.CLASS_NAME, "rating-headline-average__rating-headline-average-module__rating").text
+        recommandation_to_friend = driver.find_element(By.CSS_SELECTOR, '[data-test="recommendToFriend"]').text.split("%")[0]
+        CEO = driver.find_element(By.CLASS_NAME, "review-overview__review-overview-module__ceoName").text
+        CEO_approval = driver.find_element(By.CLASS_NAME, "review-overview__review-overview-module__ceoApproval").text.split("%")[0]
+        
+        company_infos = [('Note globale',note_globale), 
+        ("Recommandation de l'entreprise", recommandation_to_friend),
+        ('CEO', CEO),
+        ('CEO Approval', CEO_approval)]
+        
+        return tags_scores, stars_scores, company_infos
     else:
         return "Captcha detected"
 

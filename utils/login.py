@@ -18,8 +18,6 @@ def login_google(driver, email, password):
         driver.switch_to.window(pop_up_window)
     except:
         pass
-    #driver.set_window_size(100,100)
-    #driver.set_window_position(2000,2000)
     # Email
     submit_button = driver.find_element(By.NAME, "identifier")
     submit_button.send_keys(email)
@@ -27,12 +25,7 @@ def login_google(driver, email, password):
     
     wait_for(driver,By.NAME, "Passwd")
     # Password
-    #submit_button = driver.find_element(By.XPATH, '//*[@id="password"]')
-    #submit_button = driver.find_element(By.XPATH, '//*[@id="password"]')
-    #password > div.aCsJod.oJeWuf > div > div.Xb9hP > input
     submit_button = driver.find_element(By.NAME, 'Passwd')
-
-    #pwd_xpath = '/html/body/div[1]/div[1]/div[2]/div/c-wiz/div/div[2]/div/div[1]/div/form/span/section[2]/div/div/div[1]/div[1]/div/div/div/div/div[1]/div/div[1]/input'
     
     by = By.CSS_SELECTOR
     value = "[type = 'password']"
@@ -73,7 +66,6 @@ def login_linkedin(driver: Chrome, email, password, google=False):
 def login_glassdoor(driver, email, password, undetected=False, google=False):
     # Set up the Chrome driver (you can use other drivers as well)
     if driver is None:
-        print("Creating driver")
         driver = create_driver(undetected=undetected) 
     
     if google:
@@ -105,8 +97,6 @@ def check_phone_popup(driver):
     print(2)
     if len(driver.window_handles) >= 3:
         print("window handles >= 3", len(driver.window_handles))
-        #code
-        #code = st.text-input("Enter the code for Google")
     # Back to main page
     main_window = driver.window_handles[0]
     driver.switch_to.window(main_window)

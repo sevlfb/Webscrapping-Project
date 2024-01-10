@@ -1,6 +1,9 @@
+import os
+import shutil
 from threading import Thread
 
 import numpy as np
+import undetected_chromedriver as webdriver
 from selenium.webdriver import Chrome
 
 
@@ -19,24 +22,37 @@ class ThreadWithReturnValue(Thread):
         a = Thread.join(self, *args)
         #print("return: ",self._return, a)
         return self._return
+    
 
+def quit_drivers(drivers):
+    if type(drivers) == Chrome:
+        drivers.quit()
+    if type(drivers) == list:
+        for driver in drivers:
+            quit_drivers(driver)
+    del drivers
 
-#from threading import Thread
-#class ThreadWithReturnValue(Thread):
-#    def __init__(self, group=None, target=None, name=None,
-#                 args=(), kwargs={}, Verbose=None):
-#        Thread.__init__(self, group, target, name, args, kwargs, Verbose)
-#        self._return = None
-#    def run(self):
-#        if self._Thread__target is not None:
-#            self._return = self._Thread__target(*self._Thread__args,
-#                                                **self._Thread__kwargs)
-#    def join(self):
-#        Thread.join(self)
-#        return self._return
-
-
-
+def init_drivers_instances(nb_pages=1, *args): # args = (Func, number_drivers) and pages
+    t = []
+    drivers_types = []
+    processes = []
+    for arg in args:
+        t.append(ThreadWithReturnValue(target = init_drivers, 
+                                       args = [arg[1], arg[0], arg[2], [], nb_pages] ))
+    for thread in t:
+        thread.start()
+    for thread in t:
+        drivers_types.append(thread.join())
+    
+    print("drivers_types", drivers_types)
+    
+    for i in range(nb_pages):
+        processes.append([driver for drivers in drivers_types for driver in drivers[i]])
+    
+    print("processes", processes)
+    
+    return processes
+        
 
   
 def init_drivers(number=1, func=Chrome, args=[], drivers_: list = [], nb_pages=1):
@@ -47,9 +63,9 @@ def init_drivers(number=1, func=Chrome, args=[], drivers_: list = [], nb_pages=1
         except:
             pass
     drivers_=None
-    if drivers_ is None : 
+    if drivers_ is None :
+        # List of parallel processes. Each process is a list of drivers.
         drivers_ = [[] for i in range(nb_pages)]
-        print("len_driver", len(drivers_), drivers_)
     else:
     # get list of number of drivers to launch per list_of_drivers:
     # launch number of threads of the sum of the list 
@@ -69,40 +85,31 @@ def init_drivers(number=1, func=Chrome, args=[], drivers_: list = [], nb_pages=1
     #    except Exception as e:
     #       print("can't find shit") 
     #drivers= new_drivers
+    
     l_ = len(list(np.array(drivers_).flat))
-    print(l_)
+    
+    # Number of drivers to create
     range_ = (number*nb_pages)-l_
+    
     print("range:",range_)
     t=[0]*range_
     if range_ >= 0:
         for i in range(range_):
             t[i] = (ThreadWithReturnValue(target=func, args=args, Verbose=False))
         for i in t:
-            print(i)
             i.start()
-            print("return", i._return)
         for ind, i in enumerate(t):
             a = i.join()
-            print(a)
-
             drivers_[ind//number].append(a)
     else:
-        print("fuck")
         for driver in driver[number:]:
             driver.quit()
             del driver
         drivers_ = drivers_[:number] 
     #list_drivers = []
     #for i in range(nb_pages):
-    #    print(f"fuck {i}")
     #    list_drivers.append(drivers_[i*nb_pages:(i+1)*nb_pages])
     return drivers_
-
-import os
-import shutil
-import tempfile
-
-import undetected_chromedriver as webdriver
 
 
 def force_patcher_to_use(directory):
