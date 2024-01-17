@@ -1,8 +1,8 @@
 import streamlit as st
 from st_pages import Page, _show_pages
 from utils.threading import init_drivers
-from utils.processing.indeed import login_indeed_from_scratch, enter_indeed_parameters
-from utils.scrapping.indeed import get_job_data, get_filters, loop_pages
+# from utils.processing.indeed import login_indeed_from_scratch, enter_indeed_parameters
+# from utils.scrapping.indeed import get_job_data, get_filters, loop_pages
 from utils.login import check_phone_popup
 from utils.streamlit import filter_selectboxes
 import time
