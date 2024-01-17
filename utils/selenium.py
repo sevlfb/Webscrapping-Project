@@ -86,8 +86,8 @@ def bypass_cloudflare_captcha(driver):
         l = (By.TAG_NAME, 'iframe')
         #l = (By.TAG_NAME, 'input')
         #l = (By.NAME, "cf-turnstile-response")
-        if wait_for(driver,*l,15):
-            print("FOUND THAT BITCH")
+        if wait_for(driver,*l,30):
+            print("CAPTCHA FOUND")
             time.sleep(5)
         else:
             print("TOO EARLY")

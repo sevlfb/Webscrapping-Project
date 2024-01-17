@@ -73,6 +73,8 @@ def login_glassdoor(driver, email, password, undetected=False, google=False):
         login_google(driver,email,password)
     else:
         driver.get("https://www.glassdoor.fr/index.htm")
+        bypass_captcha(driver, method="cloudflare")
+        wait_for(driver, By.ID, "SignInButton", 20)
         sign_in_button = driver.find_element(By.ID, "SignInButton")
         sign_in_button.click()
 

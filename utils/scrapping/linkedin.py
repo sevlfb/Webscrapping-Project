@@ -38,19 +38,19 @@ def scrap_job_info(layout, company, verbose=False, bypass=False):
     
     job_block = layout.find_element(By.CLASS_NAME,"job-details-jobs-unified-top-card__primary-description-container")
     
-    
+    job_tags = []
+    #loc_ = {"Ville": "None"}
     #### Launch this thread
     try:
-        text_to_treat = job_block.find_element(By.CSS_SELECTOR,'div:nth-child(1)').text
-        list_of_spans = [e.text for e in job_block.find_elements(By.TAG_NAME,"span")] + [company]
-        for span in list_of_spans:
-            text_to_treat = text_to_treat.replace(span.strip(),"")
-        loc_desc = [x.strip() for x in text_to_treat.strip().split(",")]
-        loc_tags = ["Ville", "Région", "Pays"]
-        loc_ = dict(zip(loc_tags,loc_desc))
+        #text_to_treat = job_block.find_element(By.CSS_SELECTOR,'div:nth-child(1)').text
+        #list_of_spans = [e.text for e in job_block.find_elements(By.TAG_NAME,"span")] + [company]
+        #for span in list_of_spans:
+        #    text_to_treat = text_to_treat.replace(span.strip(),"")
+        #loc_desc = [x.strip() for x in text_to_treat.strip().split(",")]
+        #loc_tags = ["Ville", "Région", "Pays"]
+        #loc_ = dict(zip(loc_tags,loc_desc))
         #print("cc",company, "test",loc_,"fin", "",sep="\n")
         job_details = layout.find_elements(By.CLASS_NAME, "job-details-jobs-unified-top-card__job-insight")
-        job_tags = []
         for detail in job_details:
             try:
                 job_tags.append((detail.find_element(By.TAG_NAME, "li-icon").get_attribute("type"),
@@ -62,11 +62,22 @@ def scrap_job_info(layout, company, verbose=False, bypass=False):
     
     if verbose:
         print("**Time of scrapping job infos**:", time.time()-deb)
-        
-    return job_tags, loc_
+    
+    #print(job_tags, loc_)
+    
+    return job_tags # loc_
 
 
 def get_job_data(drivers, job, location, verbose=True, limit: int=None, bypass=True):
+    
+    
+    # Get the list of all jobs and companies already searched
+    #global LIST_OF_ALL_SEARCHED_JOBS
+    #global LIST_OF_ALL_SEARCHED_COMPANIES
+    
+    #LIST_OF_ALL_SEARCHED_JOBS = 1
+    #LIST_OF_ALL_SEARCHED_COMPANIES = 1
+    
     print("get job data")
     # Max time for checking element. Lower = Faster
     #driver.implicitly_wait(0.1)
@@ -80,7 +91,7 @@ def get_job_data(drivers, job, location, verbose=True, limit: int=None, bypass=T
     # driver that looks for the ecological score of the company
     eco_driver = drivers[-1]
     # HTML Item for the job descriiption
-    linkedin_jobs_url = f"https://www.linkedin.com/jobs/search/?keywords={job}t&location={location}&origin=BLENDED_SEARCH_RESULT_CARD_NAVIGATION"
+    linkedin_jobs_url = f"https://www.linkedin.com/jobs/search/?keywords={job}&location={location}&origin=BLENDED_SEARCH_RESULT_CARD_NAVIGATION"
     main_driver.get(linkedin_jobs_url)
     
     time.sleep(1) # Safety
@@ -97,6 +108,7 @@ def get_job_data(drivers, job, location, verbose=True, limit: int=None, bypass=T
     # Captcha kills the loop of research. Captcha appears every 2.5 pages
     try:
         # if no job element -> captcha
+        wait_for(job_elements[0], By.TAG_NAME, "a")
         job_super_ = job_elements[0].find_element(By.TAG_NAME, "a")
         job_title = job_super_.text
     except:
@@ -138,6 +150,9 @@ def get_job_data(drivers, job, location, verbose=True, limit: int=None, bypass=T
         # Add company data afterwards
         
 ###### Get job name and ID ######
+        hover = ActionChains(main_driver).move_to_element(job_element).click()
+        hover.perform()
+        wait_for(job_element, By.TAG_NAME, "a")
         job_super_ = job_element.find_element(By.TAG_NAME, "a")
         job_title = job_super_.text
         job_href = job_super_.get_attribute("href").split("/")[:6]
@@ -146,6 +161,13 @@ def get_job_data(drivers, job, location, verbose=True, limit: int=None, bypass=T
         wait_for(main_driver, By.CLASS_NAME, 'job-view-layout.jobs-details', 2)
         ###### Get the company name ######
         company = job_element.find_element(By.CLASS_NAME,"job-card-container__primary-description").text
+        
+        loc_ = job_element.find_element(By.CLASS_NAME, "job-card-container__metadata-item").text
+        loc_desc = [x.strip() for x in loc_.split("(")[0].strip().split(",")]
+        loc_tags = ["Ville", "Région", "Pays"]
+        loc_ = dict(zip(loc_tags,loc_desc))
+        print(loc_)
+        #jobs_locs.append(loc_)
         
         # Check for dups in job (in case of process reload or dups in other linkedin page)
         if job_id in jobs_ids:
@@ -157,8 +179,6 @@ def get_job_data(drivers, job, location, verbose=True, limit: int=None, bypass=T
         if perform_threads:
 
         ##### Job Thread #####
-            hover = ActionChains(main_driver).move_to_element(job_element).click()
-            hover.perform()
                         
             wait_for(main_driver, By.CLASS_NAME, 'job-view-layout.jobs-details')
             layout = main_driver.find_element(By.CLASS_NAME, "job-view-layout.jobs-details")
@@ -190,13 +210,14 @@ def get_job_data(drivers, job, location, verbose=True, limit: int=None, bypass=T
             
     ### All Threads join ####
     
-            job_tags, loc_ = thread_job.join()
+            job_tags = thread_job.join() #loc_
             # List, dict
             jobs_tags_list.append(job_tags)
             jobs_locs.append(loc_)
 
             if perform_company_threads:
-                company_agg_infos = thread_company.join()
+                company_agg_infos = thread_company.join() # 1 or 4 items
+                print("Agg infos", company_agg_infos)
                 eco_company_name, eco_score = t_eco.join()
                 if company_agg_infos == "Captcha detected":
                 # If the captcha is detected, we have to do the process again
@@ -212,10 +233,12 @@ def get_job_data(drivers, job, location, verbose=True, limit: int=None, bypass=T
                     add_data = True
                     ### perform company threads or just quit doing maybe lose 1 data
             if add_data:
-                company_infos,company_reviews_infos, additional_infos = company_agg_infos
+                company_infos,company_reviews_infos = company_agg_infos
+                stars_infos, tags_infos, additional_infos = company_reviews_infos
+                company_reviews_infos = stars_infos, tags_infos
                 # List of elements, List of tuples with tag + score
                 # ML for tagging elements ?
-                companies_infos_list.append(company_infos)
+                companies_infos_list.append([tuple(company_infos)])
                 companies_reviews_list.append(company_reviews_infos)
                 companies_add_infos.append(additional_infos)
                 
@@ -254,21 +277,25 @@ def get_job_data(drivers, job, location, verbose=True, limit: int=None, bypass=T
     df_glassdoor_stars = pd.DataFrame(companies_stars_tags_list, columns=list(company_stars_names))
     df_glassdoor_tags = pd.DataFrame(jobs_tags_tags_list, columns=list(job_tags_names))
     df_glassdoor_adds = pd.DataFrame(companies_additional_tags_list, columns=list(company_additional_names))
+    print("companies_infos_list", len(companies_infos_list), len(companies_infos_list[0]), companies_infos_list)
+    #companies_infos_list=tuple(companies_infos_list)
+    df_glassdoor_list = pd.DataFrame(companies_infos_list, columns=["List of infos from company"])
+    df_companies = pd.DataFrame(companies_name, columns=["Company Name"])
 
-    
-    df_glassdoor = pd.DataFrame({
-        "Company name": companies_name,
-        "Company infos": companies_infos_list,
-        })
-    
-    df_glassdoor=pd.concat([df_glassdoor, df_glassdoor_adds, df_glassdoor_tags, df_glassdoor_reviews, df_glassdoor_stars], axis=1)
+
+    #print("g_reviews", df_glassdoor_reviews.columns)
+    #print("g_stars", df_glassdoor_stars.columns)
+    #print("g_tags", df_glassdoor_tags.columns)
+    #print("g_adds", df_glassdoor_adds.columns)
+        
+    df_glassdoor=pd.concat([df_companies, df_glassdoor_list, df_glassdoor_adds, df_glassdoor_tags, df_glassdoor_reviews, df_glassdoor_stars], axis=1)
     
     df_ecoscore = pd.DataFrame({
         "EcoCompany name": [score[0] for score in eco_scores],
         "Ecoscore": [score[1] for score in eco_scores],
         })
 
-    df_company = pd.concat([df_ecoscore, df_glassdoor], axis=1)
+    df_company = pd.concat([df_glassdoor, df_ecoscore], axis=1)
     
     dict_companies = {}
     for i in range(df_company.shape[0]):
@@ -276,11 +303,12 @@ def get_job_data(drivers, job, location, verbose=True, limit: int=None, bypass=T
         dict_companies[line[0]] = line[1:]
     
     jobs_final_list = []
-    
+    print("dictcompa_keys", dict_companies.keys())
     for i in range(len(jobs_ids)):
-        jobs_final_list.append([jobs_ids[i][1],
-                                jobs_ids[i][0],
-                                jobs_tags_list[i],
+        jobs_final_list.append([jobs_ids[i][1], # Job Title
+                                jobs_ids[i][0], # Job ID
+                                jobs_tags_list[i], # Job Tags
+                                jobs_ids[i][2], # Company Name
                                 jobs_locs[i]] + dict_companies[jobs_ids[i][2]],
                                 )
 
@@ -292,7 +320,9 @@ def get_job_data(drivers, job, location, verbose=True, limit: int=None, bypass=T
                             columns=["Job Title",
                                      "Job ID",
                                      "Job Tags",
-                                     "Job Loc"] + list(df_company.columns[1:].values)
+                                     "Company Name",
+                                     "Job Loc"
+                                     ] + list(df_company.columns[1:].values)
         )
     
     
