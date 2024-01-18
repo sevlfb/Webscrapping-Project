@@ -71,13 +71,14 @@ def bypass_captcha(driver, method):
     if method.lower() == "cloudflare": bypass_cloudflare_captcha(driver)
     if method.lower() == "hcaptcha": bypass_hcaptcha(driver) 
 
-def bypass_cloudflare_captcha(driver):
+# If return True -> we quit
+def bypass_cloudflare_captcha(driver, quit_=True):
     #by = By.TAG_NAME
     #value = "iframe"
     by = By.ID
     value = "challenge-stage"
     if len(driver.find_elements(by,value))>0:
-        print("CAPTCHA !!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        print("##### CAPTCHA PAGE ######")
         page_source = driver.page_source
         with open("page_source_pre.txt","w") as f:
             f.write(page_source)
@@ -87,14 +88,18 @@ def bypass_cloudflare_captcha(driver):
         #l = (By.TAG_NAME, 'input')
         #l = (By.NAME, "cf-turnstile-response")
         if wait_for(driver,*l,30):
-            print("CAPTCHA FOUND")
+            print("##### CAPTCHA FOUND ON THE PAGE #####")
+            if quit_:
+                print("#QUIT#")
+                return True
             time.sleep(5)
         else:
-            print("TOO EARLY")
+            print("##### CAPTCHA NOT DETECTED ######")
         page_source = driver.page_source
         with open("page_source_post.txt","w") as f:
             f.write(page_source)
-        _bypass_captcha(driver, *l)
+        return _bypass_captcha(driver, *l)
+         
             
 def bypass_hcaptcha(driver):
     driver.switch_to.default_content()
@@ -149,7 +154,7 @@ def hcaptcha_solution(driver):
 def _bypass_captcha(driver, by, value):
     wait_for(driver, by, value, 0.1) #maybe never put it
     if element_exists(driver, by, value):
-        print("captcha found")
+        #print("")
         checkbox_locator = (by, value)
         
         #### Loop method

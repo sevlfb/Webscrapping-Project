@@ -78,7 +78,7 @@ def get_job_data(drivers, job, location, verbose=True, limit: int=None, bypass=T
     #LIST_OF_ALL_SEARCHED_JOBS = 1
     #LIST_OF_ALL_SEARCHED_COMPANIES = 1
     
-    print("get job data")
+    print("##### INIT #####")
     # Max time for checking element. Lower = Faster
     #driver.implicitly_wait(0.1)
     
@@ -98,7 +98,7 @@ def get_job_data(drivers, job, location, verbose=True, limit: int=None, bypass=T
     
     # looking for all job offers within the page
     job_elements = main_driver.find_element(By.CLASS_NAME, "scaffold-layout__list-container").find_elements(By.XPATH, "*")
-    print(len(job_elements))
+    print("NUMBER OF JOB OFFERS FOUND : ", print(len(job_elements)))
     if type(limit) == int: 
         job_elements = job_elements[:limit]
     
@@ -109,6 +109,7 @@ def get_job_data(drivers, job, location, verbose=True, limit: int=None, bypass=T
     try:
         # if no job element -> captcha
         wait_for(job_elements[0], By.TAG_NAME, "a")
+        time.sleep(1)
         job_super_ = job_elements[0].find_element(By.TAG_NAME, "a")
         job_title = job_super_.text
     except:
@@ -118,7 +119,7 @@ def get_job_data(drivers, job, location, verbose=True, limit: int=None, bypass=T
             stop = True
     
     if verbose:
-        print("**Time of pre-loop Bypass :** ", time.time()-deb)
+        print("**Time of Bypassing captcha :** ", time.time()-deb)
         
 
     # Job infos
@@ -138,7 +139,7 @@ def get_job_data(drivers, job, location, verbose=True, limit: int=None, bypass=T
     
     # For every job offer on the page  
     for job_element in job_elements:
-        print("New_element")
+        print("\n\nNEW JOB ELEMENT")
             
         #### Schema
         # Get company name
@@ -153,10 +154,11 @@ def get_job_data(drivers, job, location, verbose=True, limit: int=None, bypass=T
         hover = ActionChains(main_driver).move_to_element(job_element).click()
         hover.perform()
         wait_for(job_element, By.TAG_NAME, "a")
+        time.sleep(1)
         job_super_ = job_element.find_element(By.TAG_NAME, "a")
         job_title = job_super_.text
         job_href = job_super_.get_attribute("href").split("/")[:6]
-        print(job_href)
+        print("JOB ID :", job_href)
         job_id = job_href[-1]
         wait_for(main_driver, By.CLASS_NAME, 'job-view-layout.jobs-details', 2)
         ###### Get the company name ######
@@ -166,7 +168,7 @@ def get_job_data(drivers, job, location, verbose=True, limit: int=None, bypass=T
         loc_desc = [x.strip() for x in loc_.split("(")[0].strip().split(",")]
         loc_tags = ["Ville", "Région", "Pays"]
         loc_ = dict(zip(loc_tags,loc_desc))
-        print(loc_)
+        print("JOB LOCATION:", loc_)
         #jobs_locs.append(loc_)
         
         # Check for dups in job (in case of process reload or dups in other linkedin page)
@@ -221,6 +223,7 @@ def get_job_data(drivers, job, location, verbose=True, limit: int=None, bypass=T
                 eco_company_name, eco_score = t_eco.join()
                 if company_agg_infos == "Captcha detected":
                 # If the captcha is detected, we have to do the process again
+                    print("##### RELOAD IMMINENT #####")
                     for driver in glassdoor_drivers:
                         driver.quit()
                     del glassdoor_drivers

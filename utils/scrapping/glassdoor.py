@@ -15,7 +15,7 @@ from utils.threading import ThreadWithReturnValue
 
 
 def scrap_company_info(driver: Chrome, link, verbose, bypass):
-    print("scrap company info")
+    #print("scrap company info")
     driver.get(link)
     if not bypass_captcha(driver,method="cloudflare"):
         wait_for(driver, By.CLASS_NAME, "employer-overview__employer-overview-module__employerDetails", 1)
@@ -27,11 +27,12 @@ def scrap_company_info(driver: Chrome, link, verbose, bypass):
             print("No employer detail")
             return []
     else:
+        print("RETURN CAPTCHA")
         return "Captcha detected"
         
 
 def scrap_reviews_info(driver: Chrome, review_url):
-    print("scrap reviews_info")
+    #print("scrap reviews_info")
     deb = time.time()
     driver.get(review_url)
     if not bypass_captcha(driver,method="cloudflare"):
@@ -47,9 +48,8 @@ def scrap_reviews_info(driver: Chrome, review_url):
 
         
         if method == "click":
-            
-            driver.find_element(By.CLASS_NAME, "v2__EIReviewsRatingsStylesV2__ratingInfo").click()
-
+            driver.find_element(By.CSS_SELECTOR, '#EmpStats > div > div.mb-md-md.mb-xsm > div > div > span.SVGInline').click()
+            wait_for(driver, By.CLASS_NAME, "eiRatingsDetails")
             reviews_notes = driver.find_elements(By.CLASS_NAME, "accordion__AccordionStyle__header.categoryRating")
             tags_scores = [(review.text.split("\n")[0], review.text.split("\n")[-1]) for review in reviews_notes]
               
@@ -90,30 +90,30 @@ def scrap_reviews_info(driver: Chrome, review_url):
             except:
                 stars_scores = [('','')]
         
-        print("scores")
-        print(tags_scores, stars_scores)
+        print("SCORES FOR TAGS AND STARS")
+        print("TAGS :", tags_scores, "STARS: ", stars_scores)
         body = driver.find_element(By.CLASS_NAME, "gdGrid")
         try:
             note_globale = driver.find_element(By.CLASS_NAME, "v2__EIReviewsRatingsStylesV2__ratingInfo").text.split("\n")[0]
-            print(1.1)
+            #print(1.1)
             recommandation_to_friend = body.find_element(By.ID, 'EmpStats_Recommend').get_attribute("data-percentage")+"%"
-            print(1.2)
+            #print(1.2)
             CEO_approval = body.find_element(By.ID, "EmpStats_Approve").get_attribute("data-percentage")+"%"
-            print(1.3)
+            #print(1.3)
             CEO = body.find_elements(By.CLASS_NAME, "donut-text.pt-sm.pt-lg-0.pl-lg-sm")[-1].find_element(By.TAG_NAME, "div").text
             print(1.4)
         except:
             try:
                 note_globale = driver.find_element(By.CLASS_NAME, "v2__EIReviewsRatingsStylesV2__ratingInfo").text.split("\n")[0]  #v2__EIReviewsRatingsStylesV2__ratingNum.v2__EIReviewsRatingsStylesV2__large
-                print(2.1)
+                #print(2.1)
                 recommandation_to_friend = driver.find_elements(By.CLASS_NAME, 'donut__DonutStyleV2__donuttext.donut-text.pt-lg-0.px-lg-sm')[0].text.split("%")[0]
-                print(2.2)
+                #print(2.2)
                 #CEO = driver.find_element(By.CLASS_NAME, "review-overview__review-overview-module__ceoName").text
                 
                 CEO = body.find_elements(By.CLASS_NAME, "donut-text.pt-sm.pt-lg-0.pl-lg-sm")[-1].find_element(By.TAG_NAME, "div").text
                 CEO_approval = driver.find_elements(By.CLASS_NAME, "donut__DonutStyleV2__donuttext.donut-text.pt-lg-0.px-lg-sm")[1].text.split("%")[0]
                 print(2.3)
-                print(note_globale,recommandation_to_friend,CEO_approval,CEO)
+                #print(note_globale,recommandation_to_friend,CEO_approval,CEO)
             except:
                 note_globale='None'
                 recommandation_to_friend='None'
@@ -125,10 +125,11 @@ def scrap_reviews_info(driver: Chrome, review_url):
         ('CEO', CEO),
         ('CEO Approval', CEO_approval)]
         
-        print("tag/star/comp", tags_scores, stars_scores, company_infos)
+        print("tag/star/comp", tags_scores, stars_scores, company_infos, "\n")
         
         return tags_scores, stars_scores, company_infos
     else:
+        print("RETURN CAPTCHA")
         return "Captcha detected"
 
 
@@ -193,8 +194,12 @@ def get_company_info(drivers, company, verbose=False, bypass=False):
 
             company_infos = thread_company.join() # 1 item
             company_reviews_infos = thread_reviews.join() # 3 items
+            print("comp infos", company_infos)
+            print("comp_reviews", company_reviews_infos)
+            
             
             if "Captcha detected" in [company_infos, company_reviews_infos]:
+                "RETURN CAPTCHA"
                 return "Captcha detected"
             
         
@@ -202,6 +207,6 @@ def get_company_info(drivers, company, verbose=False, bypass=False):
         #print("-"*4*2+"> Time of scrapping company infos**:", time.time()-deb)
         deb = time.time()
     
-    print("comp/reviews", company_infos, company_reviews_infos)
+    print("\ncomp/reviews", company_infos, company_reviews_infos, "\n")
     
     return company_infos, company_reviews_infos
