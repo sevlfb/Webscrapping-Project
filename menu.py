@@ -78,6 +78,7 @@ if not session["logged_in"] :#and "drivers" not in session:
     #        st.experimental_rerun()
     with st.spinner("Setting the drivers up (max 30s.)"):
         session["drivers"] = setup_drivers()
+    session["logged_in"] = True
             
 #### Page architecture
 if session["logged_in"] and "drivers" in session:

@@ -44,7 +44,7 @@ def scrap_reviews_info(driver: Chrome, review_url):
         else:
             method= "click"
         
-        method="click"
+        #method="click"
 
         
         if method == "click":
@@ -68,8 +68,12 @@ def scrap_reviews_info(driver: Chrome, review_url):
             
         if method == "container":
             try:
-                block = driver.find_element(By.CLASS_NAME, 
+                try:
+                    block = driver.find_element(By.CLASS_NAME, 
                                             'review-overview__review-overview-module__industryAverageContainer')
+                except:
+                    block = driver.find_element(By.CLASS_NAME, 
+                                'review-overview__review-overview-module__industryAverageContainer')
                 a = list(map(lambda x: x.text, block.find_elements(By.TAG_NAME, 'p')))
                 reviews_notes = [a[i] for i in range(0, len(a), 2)]
                 reviews_tags = [a[i] for i in range(1, len(a), 2)]
@@ -81,8 +85,12 @@ def scrap_reviews_info(driver: Chrome, review_url):
             
             # get stars ranking %
             try:
-                block = driver.find_element(By.CLASS_NAME, 
-                            'review-overview__review-overview-module__distributionContainer')
+                try:
+                    block = driver.find_element(By.CLASS_NAME, 
+                                'review-overview__review-overview-module__distributionContainer')
+                except:
+                    block = driver.find_element(By.CLASS_NAME, 
+                                'review-overview__review-overview-module__distributionContainer')
                 a = list(map(lambda x: x.text, block.find_elements(By.TAG_NAME, 'p')))
                 reviews_notes = [a[i] for i in range(0, len(a), 2)]
                 reviews_tags = [a[i] for i in range(1, len(a), 2)]
