@@ -11,12 +11,12 @@ from utils.selenium import bypass_captcha, wait_for
 from utils.threading import ThreadWithReturnValue, init_drivers
 
 
-def loop_pages(list_drivers, verbose, bypass):
+def loop_pages(list_drivers, job, location, verbose, limit, bypass):
     t = []
     dfs = []
     for drivers in list_drivers:
         t_indeed = ThreadWithReturnValue(target = get_job_data,
-                                         args=(drivers, verbose, bypass))
+                                         args=(drivers, job, location, verbose, limit, bypass))
                                         #args=(drivers, verbose, bypass))
         t_indeed.start()
         t.append(t_indeed)

@@ -1,10 +1,9 @@
 import streamlit as st
 from st_pages import Page, _show_pages
 from utils.threading import init_drivers
-from utils.processing.indeed import login_indeed_from_scratch, enter_indeed_parameters
-from utils.scrapping.indeed import get_job_data, get_filters, loop_pages
+from utils.scrapping.linkedin import get_job_data, get_filters, loop_pages
 from utils.login import check_phone_popup
-from utils.streamlit import filter_selectboxes
+from utils.streamlit import filter_selectboxes, setup_drivers
 import time
 import pandas as pd
 ##### Page config
@@ -18,7 +17,6 @@ streamlit_pages = [
 
 _show_pages(streamlit_pages)
 
-print("Hello")
 session = st.session_state
 
 #### Login container
@@ -45,39 +43,41 @@ for arg in ["logged_in","select_filters","scrap"]:
 if not session["logged_in"] :#and "drivers" not in session:
     #if "drivers" in session:
     #    del session["drivers"]
-    with login_container.container():
-        email = st.text_input("Enter your email", value="scrapperselenium@gmail.com")
-        password = st.text_input("Enter your password", value="Password123!*")
-        submit = st.button("Submit")
-        if submit:
-            try:
-                print("Drivers !!!!" if "drivers" in session else "No drivers ;(")
-                with st.spinner("Setting up the environment"):
-                    pages = 1
-                    session["drivers"] = init_drivers(4,func=login_indeed_from_scratch, args=[email, password], 
-                        #drivers=[] if "drivers" not in session else session["drivers"],
-                         nb_pages=pages)
-                    for drivers_list in session["drivers"]:
-                        drivers_list.append(init_drivers()[0][0])
-                        #session["drivers"][-1].set_window_position(2000,2000)
-                st.write("ok")
-                for i, driver in enumerate(session["drivers"]):
-                    has_popup = False
-                    #has_popup = check_phone_popup(driver)
-                    if has_popup:
-                        st.write(f"Driver {i} has phone popup", 
-                                 "window handles >= 3", len(driver.window_handles))
-                        st.write("Please manually connext to indeed first, then try again")
-                    #send_code_phone_popup()
-                st.write("lourd")
-                if not has_popup:
-                    session["logged_in"] = True
-            except:
-                #if "drivers" in session:
-                #    del session["drivers"]
-                st.write("Issue with login, try default parameters")
-        if session["logged_in"]:
-            st.experimental_rerun()
+    #with login_container.container():
+    #    email = st.text_input("Enter your email", value="scrapperselenium@gmail.com")
+    #    password = st.text_input("Enter your password", value="Password123!*")
+    #    submit = st.button("Submit")
+    #    if submit:
+    #        try:
+    #            print("Drivers !!!!" if "drivers" in session else "No drivers ;(")
+    #            with st.spinner("Setting up the environment"):
+    #                pages = 1
+    #                session["drivers"] = init_drivers(4,func=login_indeed_from_scratch, args=[email, password], 
+    #                    #drivers=[] if "drivers" not in session else session["drivers"],
+    #                     nb_pages=pages)
+    #                for drivers_list in session["drivers"]:
+    #                    drivers_list.append(init_drivers()[0][0])
+    #                    #session["drivers"][-1].set_window_position(2000,2000)
+    #            st.write("ok")
+    #            for i, driver in enumerate(session["drivers"]):
+    #                has_popup = False
+    #                #has_popup = check_phone_popup(driver)
+    #                if has_popup:
+    #                    st.write(f"Driver {i} has phone popup", 
+    #                             "window handles >= 3", len(driver.window_handles))
+    #                    st.write("Please manually connext to indeed first, then try again")
+    #                #send_code_phone_popup()
+    #            st.write("lourd")
+    #            if not has_popup:
+    #                session["logged_in"] = True
+    #        except:
+    #            #if "drivers" in session:
+    #            #    del session["drivers"]
+    #            st.write("Issue with login, try default parameters")
+    #    if session["logged_in"]:
+    #        st.experimental_rerun()
+    with st.spinner("Setting the drivers up (max 30s.)"):
+        session["drivers"] = setup_drivers()
             
 #### Page architecture
 if session["logged_in"] and "drivers" in session:
@@ -96,37 +96,37 @@ if session["logged_in"] and "drivers" in session:
         if get_data:
             session["select_filters"] = False
         if not session["select_filters"]:
-            session["drivers"][0][0].get(f"https://fr.indeed.com/jobs?q={job_title}&l={location}")
-            session["filters"] = get_filters(session["drivers"][0][0])
+            session["drivers"][0][0].get(f"https://www.linkedin.com/jobs/search/?keywords={job_title}&location={location}&origin=BLENDED_SEARCH_RESULT_CARD_NAVIGATION")
+            #session["filters"] = get_filters(session["drivers"][0][0])
             #st.write(session["filters"])
             session["select_filters"] = True
-        filter_selectboxes(session["filters"], columns=3)
+        #filter_selectboxes(session["filters"], columns=3)
         submit_button = st.button("Submit2")
         if submit_button:
-            salary=""
-            session["select_filters"]=False
-            link = "?q={job_title}{salary}&l={location}"
-            for i, (filter, values) in enumerate(session["filters"].items()):
-                #st.write(i, filter, values, st.session_state[f"filter_{i}"])
-                data = session["filters"][filter][st.session_state[f"filter_{i}"]]
-                if filter == "Salaire":
-                    salaire_ = "+" + data
-                else:
-                    link += "" if len(data) == 0 else f"&{data}"
-            link = link.replace("sc::","sc=0kf%3A", 1)
-            link = link.replace("&sc::","")
-            temp = link.count("%%%%")
-            if temp > 0 : link = link.replace("%%%%","", temp-1)
-            link = link.replace("%%%%","%3B")
-            link = link.format(job_title=job_title.lower().replace(" ", "+"),
-                               salary=salaire_,
-                               location=location)
-            st.write(link)
-            for drivers_list in session["drivers"]:
-                drivers_list[0].get("https://fr.indeed.com/emplois"+link)
+            #salary=""
+            #session["select_filters"]=False
+            #link = "?q={job_title}{salary}&l={location}"
+            #for i, (filter, values) in enumerate(session["filters"].items()):
+            #    #st.write(i, filter, values, st.session_state[f"filter_{i}"])
+            #    data = session["filters"][filter][st.session_state[f"filter_{i}"]]
+            #    if filter == "Salaire":
+            #        salaire_ = "+" + data
+            #    else:
+            #        link += "" if len(data) == 0 else f"&{data}"
+            #link = link.replace("sc::","sc=0kf%3A", 1)
+            #link = link.replace("&sc::","")
+            #temp = link.count("%%%%")
+            #if temp > 0 : link = link.replace("%%%%","", temp-1)
+            #link = link.replace("%%%%","%3B")
+            #link = link.format(job_title=job_title.lower().replace(" ", "+"),
+            #                   salary=salaire_,
+            #                   location=location)
+            #st.write(link)
+            #for drivers_list in session["drivers"]:
+            #    drivers_list[0].get("https://fr.indeed.com/emplois"+link)
             with st.spinner("OKKKKKK LET'S GOOOOO"):
                 deb = time.time()
-                dfs = loop_pages(session["drivers"], verbose=False, bypass=True)
+                dfs = loop_pages(session["drivers"], job_title, location, verbose=False, limit=2, bypass=True)
                 try:
                     df=pd.concat(dfs)
                 except:
